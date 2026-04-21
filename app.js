@@ -1,14 +1,15 @@
+
 require("dotenv").config();
-console.log("app.js cargado");
+console.log("✅ app.js cargado");
 
 const express = require("express");
 const path = require("path");
 
-// const cors = require("cors"); // opcional
-
 const app = express();
 
-// app.use(cors());
+// ================================
+// MIDDLEWARES BASE
+// ================================
 app.use(express.json());
 
 // ================================
@@ -17,19 +18,29 @@ app.use(express.json());
 const PUBLIC_PATH = path.join(__dirname, "public");
 
 // ================================
-// MIDDLEWARE AUTORIZACIÓN ML
+// RUTAS (IMPORTACIONES)
 // ================================
+
+// ⚠️ IMPORTANTE:
+// auth.middleware DEBE exportar una FUNCIÓN
 const requireMeliAuth = require("./middlewares/auth.middleware");
 
-// ================================
-// RUTAS API
-// ================================
+// Rutas de negocio
 const consolidacionRoutes = require("./routes/consolidacion.routes");
+
+// Rutas OAuth
 const oauthRoutes = require("./routes/oauth.routes");
 
 // ================================
-// FRONTEND (INDEX → PUERTA DE ENTRADA)
+// OAUTH (NO PROTEGIDO)
 // ================================
+// OAuth SIEMPRE va antes de cualquier middleware de auth
+app.use("/oauth", oauthRoutes);
+
+// ================================
+// FRONTEND (INDEX)
+// ================================
+// El index pasa por middleware, pero ahora el middleware deja pasar
 app.get("/", requireMeliAuth, (req, res) => {
   res.sendFile(path.join(PUBLIC_PATH, "index.html"));
 });
@@ -40,19 +51,15 @@ app.get("/", requireMeliAuth, (req, res) => {
 app.use("/api/consolidacion", requireMeliAuth, consolidacionRoutes);
 
 // ================================
-// OAUTH (NO PROTEGIDO)
-// ================================
-app.use("/oauth", oauthRoutes);
-
-// ================================
-// STATIC FILES (CSS, JS, etc.)
+// ARCHIVOS ESTÁTICOS (CSS, JS, etc.)
 // ================================
 app.use(express.static(PUBLIC_PATH));
 
 // ================================
 // SERVER
 // ================================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
-  console.log(`✅ Consolidación ML en puerto ${PORT}`);
+  console.log(`✅ Consolidación ML levantada en puerto ${PORT}`);
 });
