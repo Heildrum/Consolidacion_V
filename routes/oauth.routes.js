@@ -1,38 +1,40 @@
 
-const express = require("express");
-const router = express.Router();
-const oauthService = require("../services/oauth.service");
 
-/**
- * 1️Inicia el flujo OAuth
- */
-router.get("/login", (req, res) => {
-  const authUrl = oauthService.getAuthorizationUrl();
-  res.redirect(authUrl);
-});
+const axios = require("axios");
 
-/**
- * 2 Callback: Mercado Libre devuelve el code
- */
-router.get("/callback", async (req, res) => {
-  try {
-    const { code } = req.query;
+function getAuthorizationUrl() {
+  return (
+    "https://auth.mercadolibre.com/authorization" +
+    "?response_type=code" +
+    "&client_id=" + process.env.ML_CLIENT_ID +
+    "&redirect_uri=https%3A%2F%2Fconsolidacion-v.onrender.com%2Foauth%2Fcallback"
+  );
+}
 
-    if (!code) {
-      return res.status(400).json({ error: "Code no recibido" });
+async function exchangeCodeForToken(code) {
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: process.env.ML_CLIENT_ID,
+    client_secret: process.env.ML_CLIENT_SECRET,
+    code: code,
+    redirect_uri: "https://consolidacion-v.onrender.com/oauth/callback"
+  });
+
+  const response = await axios.post(
+    "https://api.mercadolibre.com/oauth/token",
+    body.toString(),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json"
+      }
     }
+  );
 
-    const tokens = await oauthService.exchangeCodeForToken(code);
+  return response.data;
+}
 
-    res.json({
-      ok: true,
-      message: "OAuth completado",
-      tokens
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error en OAuth" });
-  }
-});
-
-module.exports = router;
+module.exports = {
+  getAuthorizationUrl,
+  exchangeCodeForToken
+};
