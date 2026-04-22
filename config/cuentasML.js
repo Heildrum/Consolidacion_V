@@ -1,8 +1,7 @@
-
 module.exports = [
   {
-    nombre: "Cuenta Test 1",
-    sellerId: "TEST_SELLER_ID",
-    token: process.env.ML_TOKEN_1 || ""
+    id: process.env.ML_USER_ID || "3304460558",
+    token: process.env.ML_ACCESS_TOKEN,
+    refresh_token: process.env.ML_REFRESH_TOKEN
   }
 ];
