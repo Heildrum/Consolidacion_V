@@ -24,7 +24,7 @@ const PUBLIC_PATH = path.join(__dirname, "public");
 // ⚠️ IMPORTANTE:
 // auth.middleware DEBE exportar una FUNCIÓN
 const requireMeliAuth = require("./middlewares/auth.middleware");
-
+console.log("Tipo de requireMeliAuth:", typeof requireMeliAuth);
 // Rutas de negocio
 const consolidacionRoutes = require("./routes/consolidacion.routes");
 
