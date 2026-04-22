@@ -1,6 +1,12 @@
 
 
+const express = require("express");
+const router = express.Router();
 const axios = require("axios");
+
+// ==========================================
+// LÓGICA DE NEGOCIO (Mantenida intacta)
+// ==========================================
 
 function getAuthorizationUrl() {
   return (
@@ -34,7 +40,44 @@ async function exchangeCodeForToken(code) {
   return response.data;
 }
 
-module.exports = {
-  getAuthorizationUrl,
-  exchangeCodeForToken
-};
+// ==========================================
+// DEFINICIÓN DE RUTAS (Para que Express funcione)
+// ==========================================
+
+// Ruta para iniciar el login (ej: /oauth/login)
+router.get("/login", (req, res) => {
+  const url = getAuthorizationUrl();
+  res.redirect(url);
+});
+
+// Ruta de retorno (Callback) donde llega el 'code'
+router.get("/callback", async (req, res) => {
+  const { code } = req.query;
+
+  if (!code) {
+    return res.status(400).send("No se recibió el código de autorización");
+  }
+
+  try {
+    const tokens = await exchangeCodeForToken(code);
+    
+    // Aquí es donde obtienes tu REFRESH TOKEN
+    console.log("Tokens obtenidos:", tokens);
+    
+    // TODO: Guarda 'tokens.refresh_token' en tu archivo de configuración o DB
+    
+    res.json({
+      message: "Autorización exitosa",
+      data: tokens
+    });
+  } catch (error) {
+    console.error("Error al intercambiar el token:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Error al obtener el token",
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// EXPORTACIÓN CORRECTA PARA APP.JS
+module.exports = router;
