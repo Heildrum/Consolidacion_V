@@ -37,3 +37,4 @@ function requireMeliAuth(req, res, next) {
     });
   }
 }
+module.exports = requireMeliAuth;
